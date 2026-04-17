@@ -27,7 +27,7 @@ const featuresPendientes = [
   },
   {
     titulo: 'Exportar examen',
-    descripcion: 'Descarga el examen generado en formato PDF o Word.',
+    descripcion: 'Descarga el examen generado en formato txt',
     icono: '📄',
   },
 ]

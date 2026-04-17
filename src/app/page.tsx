@@ -1,9 +1,6 @@
 import Link from 'next/link'
-import { testConnection } from '@/lib/supabase'
 
-export default async function Home() {
-  const connected = await testConnection()
-
+export default function Home() {
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -14,25 +11,6 @@ export default async function Home() {
         <p className="mt-2 text-gray-600">
           Genera exámenes personalizados a partir de los microcurrículos institucionales.
         </p>
-      </div>
-
-      {/* Estado de conexión Supabase */}
-      <div className={`flex items-center gap-3 px-5 py-4 rounded-xl border ${
-        connected
-          ? 'bg-green-50 border-green-200'
-          : 'bg-red-50 border-red-200'
-      }`}>
-        <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
-        <div>
-          <p className={`font-medium text-sm ${connected ? 'text-green-800' : 'text-red-800'}`}>
-            {connected ? 'Conectado a Supabase' : 'Sin conexión a Supabase'}
-          </p>
-          <p className={`text-xs mt-0.5 ${connected ? 'text-green-600' : 'text-red-600'}`}>
-            {connected
-              ? 'Base de datos disponible y respondiendo correctamente.'
-              : 'Verifica las credenciales en el archivo .env.local'}
-          </p>
-        </div>
       </div>
 
       {/* Cards de navegación */}
@@ -74,9 +52,6 @@ export default async function Home() {
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
               </div>
-              <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                Próximamente
-              </span>
             </div>
             <h2 className="mt-4 text-lg font-semibold text-gray-900">Generador de Exámenes</h2>
             <p className="mt-1 text-sm text-gray-500">
@@ -92,24 +67,6 @@ export default async function Home() {
         </Link>
       </div>
 
-      {/* Info setup */}
-      {!connected && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-          <h3 className="font-semibold text-amber-900 text-sm">Configurar conexión a Supabase</h3>
-          <p className="mt-1 text-sm text-amber-700">
-            Edita el archivo{' '}
-            <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-xs">.env.local</code>{' '}
-            en la raíz del proyecto y reemplaza los valores:
-          </p>
-          <pre className="mt-3 bg-amber-100 rounded-lg p-3 text-xs text-amber-900 overflow-x-auto">
-{`NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key`}
-          </pre>
-          <p className="mt-2 text-xs text-amber-600">
-            Encuentra estas credenciales en tu proyecto de Supabase: Settings → API
-          </p>
-        </div>
-      )}
     </div>
   )
 }
