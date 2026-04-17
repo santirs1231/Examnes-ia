@@ -1,11 +1,15 @@
+import { unstable_noStore } from 'next/cache'
 import { getMicrocurriculoCompleto } from '@/lib/queries'
 import MicrocurriculosCliente from '@/components/MicrocurriculosCliente'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Microcurrículos | Exámenes IA',
 }
 
 export default async function MicrocurriculosPage() {
+  unstable_noStore()
   const initialData = await getMicrocurriculoCompleto()
 
   return (

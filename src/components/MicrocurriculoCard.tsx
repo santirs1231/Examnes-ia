@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import type { MateriaConSemanas } from '@/types/microcurriculo'
 
 interface Props {
@@ -5,6 +8,7 @@ interface Props {
 }
 
 export default function MicrocurriculoCard({ materia }: Props) {
+  const [expandido, setExpandido] = useState(false)
   const totalTemas = materia.semanas.reduce((acc, s) => acc + s.temas.length, 0)
 
   return (
@@ -34,50 +38,68 @@ export default function MicrocurriculoCard({ materia }: Props) {
         {materia.descripcion && (
           <p className="mt-2 text-xs text-indigo-700 line-clamp-2">{materia.descripcion}</p>
         )}
+
+        {/* Botón expandir / colapsar */}
+        <button
+          onClick={() => setExpandido((v) => !v)}
+          className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+        >
+          <svg
+            className={`w-4 h-4 transition-transform duration-200 ${expandido ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+          {expandido ? 'Ocultar contenido' : `Ver contenido (${totalTemas} temas)`}
+        </button>
       </div>
 
-      {/* Semanas y temas */}
-      <div className="divide-y divide-gray-100">
-        {materia.semanas.length === 0 ? (
-          <p className="px-5 py-4 text-sm text-gray-400 italic">Sin semanas registradas</p>
-        ) : (
-          materia.semanas.map((semana) => (
-            <div key={semana.id} className="px-5 py-3">
-              <div className="flex items-baseline gap-2">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">
-                  {semana.numero_semana}
-                </span>
-                <p className="text-sm font-medium text-gray-700 leading-snug">
-                  {semana.objetivo_semanal ?? (
-                    <span className="italic text-gray-400">Sin objetivo definido</span>
-                  )}
-                </p>
-              </div>
-
-              {/* Temas de la semana */}
-              {semana.temas.length > 0 && (
-                <div className="mt-2 ml-9 flex flex-wrap gap-1.5">
-                  {semana.temas.map((tema) => (
-                    <span
-                      key={tema.id}
-                      title={tema.descripcion ?? undefined}
-                      className="inline-block text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full cursor-default hover:bg-gray-100 transition-colors"
-                    >
-                      {tema.titulo}
+      {/* Semanas y temas — solo visibles cuando está expandido */}
+      {expandido && (
+        <>
+          <div className="divide-y divide-gray-100">
+            {materia.semanas.length === 0 ? (
+              <p className="px-5 py-4 text-sm text-gray-400 italic">Sin semanas registradas</p>
+            ) : (
+              materia.semanas.map((semana) => (
+                <div key={semana.id} className="px-5 py-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">
+                      {semana.numero_semana}
                     </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
+                    <p className="text-sm font-medium text-gray-700 leading-snug">
+                      {semana.objetivo_semanal ?? (
+                        <span className="italic text-gray-400">Sin objetivo definido</span>
+                      )}
+                    </p>
+                  </div>
 
-      {/* Footer */}
-      {totalTemas > 0 && (
-        <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5">
-          <p className="text-xs text-gray-400">{totalTemas} temas en total</p>
-        </div>
+                  {semana.temas.length > 0 && (
+                    <div className="mt-2 ml-9 flex flex-wrap gap-1.5">
+                      {semana.temas.map((tema) => (
+                        <span
+                          key={tema.id}
+                          title={tema.descripcion ?? undefined}
+                          className="inline-block text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full cursor-default hover:bg-gray-100 transition-colors"
+                        >
+                          {tema.titulo}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {totalTemas > 0 && (
+            <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5">
+              <p className="text-xs text-gray-400">{totalTemas} temas en total</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
