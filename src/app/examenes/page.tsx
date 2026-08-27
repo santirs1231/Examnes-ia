@@ -369,6 +369,10 @@ export default function ExamenesPage() {
   const [semanasOptions, setSemanasOptions] = useState<SemanaConTemas[]>([])
   const [temasOptions, setTemasOptions] = useState<Tema[]>([])
 
+  // ─── Estado del examen generado ───────────────────────────────────────────
+  const [examenGenerado, setExamenGenerado] = useState<any | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
     let mounted = true
     getMaterias().then((m) => { if (mounted) setMaterias(m) })
@@ -402,8 +406,29 @@ export default function ExamenesPage() {
   const handleGenerar = async () => {
     if (!canGenerate) return
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 2000))
-    setLoading(false)
+    setError(null)
+    setExamenGenerado(null)
+
+    try {
+      const res = await fetch('/api/generar-examen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Error desconocido al generar el examen.')
+        return
+      }
+
+      setExamenGenerado(data.examen)
+    } catch (err: any) {
+      setError(err.message || 'Error de conexión. Verifica tu red e intenta de nuevo.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -510,6 +535,143 @@ export default function ExamenesPage() {
           </button>
         </div>
       </div>
+
+      {/* ─── Mensaje de error ──────────────────────────────────────────────────── */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 flex items-start gap-3">
+          <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-red-800">Error al generar el examen</p>
+            <p className="text-sm text-red-600 mt-1">{error}</p>
+          </div>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* ─── Examen generado ───────────────────────────────────────────────────── */}
+      {examenGenerado && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          {/* Encabezado del examen */}
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-5 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold">{examenGenerado.titulo || 'Examen Generado'}</h2>
+                <p className="text-purple-200 text-sm mt-1">
+                  {examenGenerado.materia} · {examenGenerado.tipo?.toUpperCase()} · Nivel {examenGenerado.nivel}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg text-sm font-medium">
+                  {examenGenerado.total_preguntas || examenGenerado.preguntas?.length || 0} preguntas
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify(examenGenerado, null, 2))
+                  }}
+                  className="bg-white/20 backdrop-blur-sm p-2 rounded-lg hover:bg-white/30 transition-colors"
+                  title="Copiar JSON"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Lista de preguntas */}
+          <div className="divide-y divide-gray-100">
+            {examenGenerado.preguntas?.map((pregunta: any, idx: number) => (
+              <div key={idx} className="px-6 py-5">
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center text-sm font-bold">
+                    {pregunta.numero || idx + 1}
+                  </span>
+                  <div className="flex-1 space-y-3">
+                    <p className="text-sm font-medium text-gray-800 leading-relaxed">
+                      {pregunta.enunciado || pregunta.texto_con_espacio}
+                    </p>
+
+                    {/* Opciones (formato aiken / opción múltiple) */}
+                    {pregunta.opciones && (
+                      <div className="grid gap-1.5 pl-1">
+                        {pregunta.opciones.map((opcion: string, oidx: number) => {
+                          const letraOpcion = opcion.charAt(0)
+                          const esCorrecta = pregunta.respuesta_correcta === letraOpcion
+                          return (
+                            <div
+                              key={oidx}
+                              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                                form.incluir_respuestas && esCorrecta
+                                  ? 'bg-green-50 border border-green-200 text-green-800'
+                                  : 'bg-gray-50 text-gray-700'
+                              }`}
+                            >
+                              {form.incluir_respuestas && esCorrecta && (
+                                <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                              {opcion}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Palabra correcta (formato palabra_ausente) */}
+                    {pregunta.palabra_correcta && form.incluir_respuestas && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">
+                        <span className="font-medium">Respuesta:</span> {pregunta.palabra_correcta}
+                      </div>
+                    )}
+
+                    {/* Rúbrica (formato desarrollo) */}
+                    {pregunta.rubrica && form.incluir_respuestas && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-800">
+                        <span className="font-medium">Rúbrica:</span> {pregunta.rubrica}
+                      </div>
+                    )}
+
+                    {/* Justificación */}
+                    {pregunta.justificacion && form.incluir_respuestas && (
+                      <p className="text-xs text-gray-500 italic pl-1">
+                        💡 {pregunta.justificacion}
+                      </p>
+                    )}
+
+                    {/* GIFT text */}
+                    {pregunta.gift_text && (
+                      <pre className="bg-gray-900 text-green-400 rounded-lg px-4 py-3 text-xs overflow-x-auto">
+                        {pregunta.gift_text}
+                      </pre>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer del examen */}
+          <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              Generado con IA · Revisa y ajusta las preguntas antes de usar
+            </p>
+            <button
+              onClick={() => setExamenGenerado(null)}
+              className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+            >
+              Cerrar resultado
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
