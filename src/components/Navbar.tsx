@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
 const navItems = [
@@ -14,7 +15,7 @@ const navItems = [
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [role, setRole] = useState<string>('')
 
   useEffect(() => {

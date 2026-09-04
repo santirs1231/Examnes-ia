@@ -1,11 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { getMaterias, getMicrocurriculoCompleto } from '@/lib/queries'
 import type { Materia, Tema, SemanaConTemas, MateriaConSemanas } from '@/types/microcurriculo'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PreguntaGenerada {
+  numero?: number
+  enunciado?: string
+  texto_con_espacio?: string
+  opciones?: string[]
+  respuesta_correcta?: string
+  palabra_correcta?: string
+  rubrica?: string
+  justificacion?: string
+  gift_text?: string
+}
+
+interface ExamenGenerado {
+  titulo?: string
+  materia?: string
+  tipo?: string
+  nivel?: string
+  total_preguntas?: number
+  preguntas?: PreguntaGenerada[]
+}
 
 type TipoEvaluacion = 'parcial' | 'quiz' | 'taller'
 type FormatoEvaluacion = 'aiken' | 'palabra_ausente' | 'desarrollo' | 'GITF'
@@ -370,7 +390,7 @@ export default function ExamenesPage() {
   const [temasOptions, setTemasOptions] = useState<Tema[]>([])
 
   // ─── Estado del examen generado ───────────────────────────────────────────
-  const [examenGenerado, setExamenGenerado] = useState<any | null>(null)
+  const [examenGenerado, setExamenGenerado] = useState<ExamenGenerado | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -424,8 +444,8 @@ export default function ExamenesPage() {
       }
 
       setExamenGenerado(data.examen)
-    } catch (err: any) {
-      setError(err.message || 'Error de conexión. Verifica tu red e intenta de nuevo.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error de conexión. Verifica tu red e intenta de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -587,7 +607,7 @@ export default function ExamenesPage() {
 
           {/* Lista de preguntas */}
           <div className="divide-y divide-gray-100">
-            {examenGenerado.preguntas?.map((pregunta: any, idx: number) => (
+            {examenGenerado.preguntas?.map((pregunta: PreguntaGenerada, idx: number) => (
               <div key={idx} className="px-6 py-5">
                 <div className="flex items-start gap-3">
                   <span className="flex-shrink-0 w-8 h-8 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center text-sm font-bold">
