@@ -28,14 +28,6 @@ export default function CambiarPasswordPage() {
         href: window.location.href,
       })
 
-      if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-        console.log('CambiarPassword: exchange result', { exchangeError })
-        if (exchangeError && isMounted) {
-          setError(exchangeError.message)
-        }
-      }
-
       const {
         data: { session },
       } = await supabase.auth.getSession()
