@@ -10,22 +10,26 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const code = searchParams.get('code')
-    const type = searchParams.get('type')
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const type = searchParams.get('type') ?? hashParams.get('type')
+    const hasRecoveryToken = type === 'recovery' || Boolean(hashParams.get('access_token'))
 
     const handleCallback = async () => {
-      if (!code) {
+      if (!code && !hasRecoveryToken) {
         router.replace('/login')
         return
       }
 
-      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-      if (error) {
-        router.replace('/login')
-        return
+        if (error) {
+          router.replace('/login')
+          return
+        }
       }
 
-      if (type === 'recovery') {
+      if (hasRecoveryToken) {
         router.replace('/cambiar-password')
         return
       }
