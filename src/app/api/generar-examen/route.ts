@@ -22,6 +22,30 @@ interface GenerarExamenBody {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+interface TemaRow {
+  id: number
+  titulo: string
+  descripcion: string | null
+}
+
+interface SemanaRow {
+  id: number
+  numero_semana: number
+  objetivo_semanal: string | null
+  temas: TemaRow[] | null
+}
+
+interface MateriaRow {
+  nombre: string
+  codigo: string
+  descripcion: string | null
+}
+
+interface ApiErrorLike {
+  status?: number
+  message?: string
+}
+
 async function obtenerContextoMateria(body: GenerarExamenBody) {
   // Obtener nombre de la materia
   const { data: materia } = await supabase
@@ -31,42 +55,42 @@ async function obtenerContextoMateria(body: GenerarExamenBody) {
     .single()
 
   // Obtener semanas seleccionadas con sus temas
-  const { data: semanas } = await supabase
+  const { data: semanas } = (await supabase
     .from('semanas')
     .select(`
       id, numero_semana, objetivo_semanal,
       temas ( id, titulo, descripcion )
     `)
     .in('id', body.semanas)
-    .order('numero_semana')
+    .order('numero_semana')) as { data: SemanaRow[] | null }
 
   // Si el usuario seleccionó temas específicos, filtrarlos
   let temasTexto = ''
   if (body.temas.length > 0) {
     const temasSeleccionados = (semanas ?? [])
-      .flatMap((s: any) => s.temas ?? [])
-      .filter((t: any) => body.temas.includes(t.id))
+      .flatMap((s) => s.temas ?? [])
+      .filter((t) => body.temas.includes(t.id))
 
     temasTexto = temasSeleccionados
-      .map((t: any) => `- ${t.titulo}${t.descripcion ? `: ${t.descripcion}` : ''}`)
+      .map((t) => `- ${t.titulo}${t.descripcion ? `: ${t.descripcion}` : ''}`)
       .join('\n')
   } else {
     temasTexto = (semanas ?? [])
-      .flatMap((s: any) => (s.temas ?? []).map((t: any) =>
+      .flatMap((s) => (s.temas ?? []).map((t) =>
         `- [Semana ${s.numero_semana}] ${t.titulo}${t.descripcion ? `: ${t.descripcion}` : ''}`
       ))
       .join('\n')
   }
 
   const semanasTexto = (semanas ?? [])
-    .map((s: any) => `Semana ${s.numero_semana}: ${s.objetivo_semanal || 'Sin objetivo definido'}`)
+    .map((s) => `Semana ${s.numero_semana}: ${s.objetivo_semanal || 'Sin objetivo definido'}`)
     .join('\n')
 
   return { materia, semanasTexto, temasTexto }
 }
 
 function construirPrompt(body: GenerarExamenBody, contexto: {
-  materia: any
+  materia: MateriaRow | null
   semanasTexto: string
   temasTexto: string
 }): string {
@@ -232,17 +256,18 @@ export async function POST(request: NextRequest) {
       },
     })
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al generar examen:', error)
+    const err = error as ApiErrorLike
 
     // Errores específicos de OpenAI
-    if (error?.status === 401) {
+    if (err?.status === 401) {
       return NextResponse.json(
         { error: 'API key de OpenAI inválida. Verifica tu OPENAI_API_KEY en .env.local' },
         { status: 401 }
       )
     }
-    if (error?.status === 429) {
+    if (err?.status === 429) {
       return NextResponse.json(
         { error: 'Se excedió el límite de la API de OpenAI. Intenta de nuevo en unos minutos.' },
         { status: 429 }
@@ -250,7 +275,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: error.message || 'Error interno del servidor al generar el examen.' },
+      { error: err.message || 'Error interno del servidor al generar el examen.' },
       { status: 500 }
     )
   }
