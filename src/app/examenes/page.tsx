@@ -391,6 +391,7 @@ export default function ExamenesPage() {
 
   // ─── Estado del examen generado ───────────────────────────────────────────
   const [examenGenerado, setExamenGenerado] = useState<ExamenGenerado | null>(null)
+  const [preguntasEditando, setPreguntasEditando] = useState<Set<number>>(new Set())
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -423,11 +424,25 @@ export default function ExamenesPage() {
 
   const canGenerate = !!form.materia_id && form.semanas.length > 0
 
+  const actualizarPregunta = (indice: number, cambios: Partial<PreguntaGenerada>) => {
+    setExamenGenerado((examen) => {
+      if (!examen?.preguntas) return examen
+
+      return {
+        ...examen,
+        preguntas: examen.preguntas.map((pregunta, idx) =>
+          idx === indice ? { ...pregunta, ...cambios } : pregunta
+        ),
+      }
+    })
+  }
+
   const handleGenerar = async () => {
     if (!canGenerate) return
     setLoading(true)
     setError(null)
     setExamenGenerado(null)
+    setPreguntasEditando(new Set())
 
     try {
       const res = await fetch('/api/generar-examen', {
@@ -614,6 +629,93 @@ export default function ExamenesPage() {
                     {pregunta.numero || idx + 1}
                   </span>
                   <div className="flex-1 space-y-3">
+                    {preguntasEditando.has(idx) ? (
+                      <div className="space-y-3">
+                        <label className="block text-xs font-medium text-gray-600">
+                          Pregunta
+                          <textarea
+                            value={pregunta.enunciado ?? pregunta.texto_con_espacio ?? ''}
+                            onChange={(e) => actualizarPregunta(
+                              idx,
+                              pregunta.enunciado !== undefined
+                                ? { enunciado: e.target.value }
+                                : { texto_con_espacio: e.target.value }
+                            )}
+                            rows={3}
+                            className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                          />
+                        </label>
+                        {pregunta.opciones?.map((opcion, oidx) => (
+                          <label key={oidx} className="block text-xs font-medium text-gray-600">
+                            Opción {String.fromCharCode(65 + oidx)}
+                            <textarea
+                              value={opcion}
+                              onChange={(e) => actualizarPregunta(idx, {
+                                opciones: pregunta.opciones?.map((actual, opcionIdx) =>
+                                  opcionIdx === oidx ? e.target.value : actual
+                                ),
+                              })}
+                              rows={2}
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                            />
+                          </label>
+                        ))}
+                        {pregunta.respuesta_correcta !== undefined && (
+                          <label className="block text-xs font-medium text-gray-600">
+                            Respuesta correcta
+                            <input
+                              value={pregunta.respuesta_correcta}
+                              onChange={(e) => actualizarPregunta(idx, { respuesta_correcta: e.target.value })}
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                            />
+                          </label>
+                        )}
+                        {pregunta.palabra_correcta !== undefined && (
+                          <label className="block text-xs font-medium text-gray-600">
+                            Palabra correcta
+                            <input
+                              value={pregunta.palabra_correcta}
+                              onChange={(e) => actualizarPregunta(idx, { palabra_correcta: e.target.value })}
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                            />
+                          </label>
+                        )}
+                        {pregunta.rubrica !== undefined && (
+                          <label className="block text-xs font-medium text-gray-600">
+                            Rúbrica
+                            <textarea
+                              value={pregunta.rubrica}
+                              onChange={(e) => actualizarPregunta(idx, { rubrica: e.target.value })}
+                              rows={3}
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                            />
+                          </label>
+                        )}
+                        {pregunta.justificacion !== undefined && (
+                          <label className="block text-xs font-medium text-gray-600">
+                            Justificación
+                            <textarea
+                              value={pregunta.justificacion}
+                              onChange={(e) => actualizarPregunta(idx, { justificacion: e.target.value })}
+                              rows={2}
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                            />
+                          </label>
+                        )}
+                        {pregunta.gift_text !== undefined && (
+                          <label className="block text-xs font-medium text-gray-600">
+                            Texto GIFT
+                            <textarea
+                              value={pregunta.gift_text}
+                              onChange={(e) => actualizarPregunta(idx, { gift_text: e.target.value })}
+                              rows={4}
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                            />
+                          </label>
+                        )}
+                      </div>
+                    ) : (
+                      <>
                     <p className="text-sm font-medium text-gray-800 leading-relaxed">
                       {pregunta.enunciado || pregunta.texto_con_espacio}
                     </p>
@@ -672,7 +774,21 @@ export default function ExamenesPage() {
                         {pregunta.gift_text}
                       </pre>
                     )}
+                      </>
+                    )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setPreguntasEditando((actuales) => {
+                      const siguientes = new Set(actuales)
+                      if (siguientes.has(idx)) siguientes.delete(idx)
+                      else siguientes.add(idx)
+                      return siguientes
+                    })}
+                    className="flex-shrink-0 rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:border-purple-300 hover:bg-purple-50"
+                  >
+                    {preguntasEditando.has(idx) ? 'Terminar edición' : 'Editar'}
+                  </button>
                 </div>
               </div>
             ))}
