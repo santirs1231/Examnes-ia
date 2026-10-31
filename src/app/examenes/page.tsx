@@ -772,7 +772,7 @@ export default function ExamenesPage() {
                   <span className="flex-shrink-0 w-8 h-8 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center text-sm font-bold">
                     {pregunta.numero || idx + 1}
                   </span>
-                  <div className="flex-1 space-y-3">
+                  <div className="flex-1 space-y-3 print:hidden">
                     {preguntasEditando.has(idx) ? (
                       <div className="space-y-3">
                         <label className="block text-xs font-medium text-gray-600">
@@ -893,32 +893,46 @@ export default function ExamenesPage() {
 
                     {/* Palabra correcta (formato palabra_ausente) */}
                     {pregunta.palabra_correcta && form.incluir_respuestas && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">
+                      <div className="print:hidden bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">
                         <span className="font-medium">Respuesta:</span> {pregunta.palabra_correcta}
                       </div>
                     )}
 
                     {/* Rúbrica (formato desarrollo) */}
                     {pregunta.rubrica && form.incluir_respuestas && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-800">
+                      <div className="print:hidden bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-800">
                         <span className="font-medium">Rúbrica:</span> {pregunta.rubrica}
                       </div>
                     )}
 
                     {/* Justificación */}
                     {pregunta.justificacion && form.incluir_respuestas && (
-                      <p className="text-xs text-gray-500 italic pl-1">
+                      <p className="print:hidden text-xs text-gray-500 italic pl-1">
                         💡 {pregunta.justificacion}
                       </p>
                     )}
 
                     {/* GIFT text */}
                     {pregunta.gift_text && (
-                      <pre className="bg-gray-900 text-green-400 rounded-lg px-4 py-3 text-xs overflow-x-auto">
+                      <pre className="print:hidden bg-gray-900 text-green-400 rounded-lg px-4 py-3 text-xs overflow-x-auto">
                         {pregunta.gift_text}
                       </pre>
                     )}
                       </>
+                    )}
+                  </div>
+                  <div className="hidden flex-1 space-y-3 print:block">
+                    <p className="text-sm font-medium leading-relaxed text-gray-800">
+                      {pregunta.enunciado || pregunta.texto_con_espacio}
+                    </p>
+                    {pregunta.opciones && (
+                      <div className="grid gap-1.5 pl-1">
+                        {pregunta.opciones.map((opcion, opcionIdx) => (
+                          <div key={opcionIdx} className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                            {opcion}
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <button

@@ -53,4 +53,10 @@ body {
   header {
     break-inside: avoid;
   }
+
+  .print-answer-option {
+    background: #f9fafb !important;
+    border: 0 !important;
+    color: #374151 !important;
+  }
 }
