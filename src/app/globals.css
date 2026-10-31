@@ -25,3 +25,32 @@ body {
     text-wrap: balance;
   }
 }
+
+@media print {
+  @page {
+    margin: 18mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  nav,
+  button,
+  a[href="/examenes/guardados"] {
+    display: none !important;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  article,
+  header {
+    break-inside: avoid;
+  }
+}
