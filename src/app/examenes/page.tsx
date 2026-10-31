@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import ExportarExamen from '@/components/ExportarExamen'
 import { getMaterias, getMicrocurriculoCompleto } from '@/lib/queries'
+import { supabase } from '@/lib/supabase'
 import type { Materia, Tema, SemanaConTemas, MateriaConSemanas } from '@/types/microcurriculo'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -393,6 +396,9 @@ export default function ExamenesPage() {
   const [examenGenerado, setExamenGenerado] = useState<ExamenGenerado | null>(null)
   const [preguntasEditando, setPreguntasEditando] = useState<Set<number>>(new Set())
   const [error, setError] = useState<string | null>(null)
+  const [guardando, setGuardando] = useState(false)
+  const [errorGuardado, setErrorGuardado] = useState<string | null>(null)
+  const [examenGuardadoId, setExamenGuardadoId] = useState<number | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -439,8 +445,16 @@ export default function ExamenesPage() {
 
   const handleGenerar = async () => {
     if (!canGenerate) return
+    console.info('[examenes] generar:inicio', {
+      materiaId: form.materia_id,
+      semanas: form.semanas.length,
+      cantidadPreguntas: form.cantidad_preguntas,
+      formato: form.formato,
+    })
     setLoading(true)
     setError(null)
+    setErrorGuardado(null)
+    setExamenGuardadoId(null)
     setExamenGenerado(null)
     setPreguntasEditando(new Set())
 
@@ -454,15 +468,129 @@ export default function ExamenesPage() {
       const data = await res.json()
 
       if (!res.ok) {
+        console.error('[examenes] generar:error', { status: res.status, message: data.error })
         setError(data.error || 'Error desconocido al generar el examen.')
         return
       }
 
       setExamenGenerado(data.examen)
+      console.info('[examenes] generar:exito', {
+        cantidadPreguntas: data.examen?.preguntas?.length ?? 0,
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error de conexión. Verifica tu red e intenta de nuevo.')
+      const message = err instanceof Error
+        ? err.message
+        : 'Error de conexión. Verifica tu red e intenta de nuevo.'
+      console.error('[examenes] generar:error', message)
+      setError(message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGuardar = async () => {
+    if (!examenGenerado?.preguntas?.length || !form.materia_id || form.semanas.length === 0) {
+      console.warn('[examenes] guardar:validacion_fallida', {
+        tienePreguntas: Boolean(examenGenerado?.preguntas?.length),
+        tieneMateria: Boolean(form.materia_id),
+        cantidadSemanas: form.semanas.length,
+      })
+      setErrorGuardado('El examen debe tener preguntas y una materia con al menos una semana seleccionada.')
+      return
+    }
+
+    const porcentajeNota = form.porcentaje_nota.trim()
+      ? Number(form.porcentaje_nota)
+      : null
+
+    if (
+      porcentajeNota !== null &&
+      (!Number.isFinite(porcentajeNota) || porcentajeNota < 0 || porcentajeNota > 100)
+    ) {
+      console.warn('[examenes] guardar:porcentaje_invalido')
+      setErrorGuardado('El porcentaje de la nota debe estar entre 0 y 100.')
+      return
+    }
+
+    console.info('[examenes] guardar:inicio', {
+      materiaId: form.materia_id,
+      cantidadPreguntas: examenGenerado.preguntas.length,
+      cantidadSemanas: form.semanas.length,
+      formato: form.formato,
+    })
+    setGuardando(true)
+    setErrorGuardado(null)
+
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError) throw userError
+      if (!userData.user) {
+        throw new Error('Debes iniciar sesión para guardar el examen.')
+      }
+
+      const { data: examenRow, error: insertError } = await supabase
+        .from('examenes_guardados')
+        .insert({
+          titulo: examenGenerado.titulo?.trim() || form.titulo.trim() || 'Examen sin título',
+          materia_id: Number(form.materia_id),
+          creador_id: userData.user.id,
+          tipo: form.tipo,
+          formato_preguntas: form.formato,
+          nivel: form.nivel,
+          porcentaje_nota: porcentajeNota,
+          cantidad_preguntas: examenGenerado.preguntas.length,
+          preguntas: examenGenerado.preguntas,
+        })
+        .select('id')
+        .single()
+
+      if (insertError) throw insertError
+      if (!examenRow) throw new Error('Supabase no devolvió el identificador del examen guardado.')
+
+      const { error: semanasError } = await supabase
+        .from('examenes_guardados_semanas')
+        .insert(form.semanas.map((semanaId) => ({
+          examen_id: examenRow.id,
+          semana_id: semanaId,
+        })))
+
+      if (semanasError) {
+        const { error: rollbackError } = await supabase
+          .from('examenes_guardados')
+          .delete()
+          .eq('id', examenRow.id)
+
+        if (rollbackError) {
+          throw new Error(
+            `No se pudieron guardar las semanas (${semanasError.message}) y tampoco se pudo eliminar el examen incompleto (${rollbackError.message}).`
+          )
+        }
+
+        throw new Error(`No se pudieron asociar las semanas seleccionadas: ${semanasError.message}`)
+      }
+
+      setExamenGuardadoId(Number(examenRow.id))
+      console.info('[examenes] guardar:exito', { examenId: examenRow.id })
+    } catch (err) {
+      const message = err instanceof Error
+        ? err.message
+        : 'Ocurrió un error al guardar el examen.'
+      console.error('[examenes] guardar:error', message)
+      setErrorGuardado(message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const handleCopiarExamen = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(examenGenerado, null, 2))
+      console.info('[examenes] copiar_json:exito')
+      setErrorGuardado(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'No se pudo copiar el examen.'
+      console.error('[examenes] copiar_json:error', message)
+      setErrorGuardado('No se pudo copiar el examen. Revisa los permisos del navegador.')
     }
   }
 
@@ -490,7 +618,7 @@ export default function ExamenesPage() {
       </div>
 
       {/* Formulario principal */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+      <div className="print:hidden bg-white rounded-2xl border border-gray-200 shadow-sm">
         {/* Pestañas */}
         <div className="flex gap-1 px-6 pt-4 pb-0">
           {([
@@ -543,6 +671,7 @@ export default function ExamenesPage() {
             )}
           </p>
           <button
+            type="button"
             onClick={handleGenerar}
             disabled={!canGenerate || loading}
             className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-lg transition-all ${
@@ -581,7 +710,14 @@ export default function ExamenesPage() {
             <p className="text-sm font-medium text-red-800">Error al generar el examen</p>
             <p className="text-sm text-red-600 mt-1">{error}</p>
           </div>
-          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+          <button
+            type="button"
+            onClick={() => {
+              console.info('[examenes] cerrar_error_generacion')
+              setError(null)
+            }}
+            className="ml-auto text-red-400 hover:text-red-600"
+          >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -606,9 +742,8 @@ export default function ExamenesPage() {
                   {examenGenerado.total_preguntas || examenGenerado.preguntas?.length || 0} preguntas
                 </span>
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(JSON.stringify(examenGenerado, null, 2))
-                  }}
+                  type="button"
+                  onClick={handleCopiarExamen}
                   className="bg-white/20 backdrop-blur-sm p-2 rounded-lg hover:bg-white/30 transition-colors"
                   title="Copiar JSON"
                 >
@@ -618,6 +753,15 @@ export default function ExamenesPage() {
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="border-b border-gray-100 px-6 py-4">
+            <ExportarExamen
+              examen={{
+                titulo: examenGenerado.titulo || 'Examen generado',
+                preguntas: examenGenerado.preguntas ?? [],
+              }}
+            />
           </div>
 
           {/* Lista de preguntas */}
@@ -779,12 +923,16 @@ export default function ExamenesPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setPreguntasEditando((actuales) => {
-                      const siguientes = new Set(actuales)
-                      if (siguientes.has(idx)) siguientes.delete(idx)
-                      else siguientes.add(idx)
-                      return siguientes
-                    })}
+                    onClick={() => {
+                      const editando = !preguntasEditando.has(idx)
+                      console.info('[examenes] editar_pregunta', { indice: idx, editando })
+                      setPreguntasEditando((actuales) => {
+                        const siguientes = new Set(actuales)
+                        if (siguientes.has(idx)) siguientes.delete(idx)
+                        else siguientes.add(idx)
+                        return siguientes
+                      })
+                    }}
                     className="flex-shrink-0 rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:border-purple-300 hover:bg-purple-50"
                   >
                     {preguntasEditando.has(idx) ? 'Terminar edición' : 'Editar'}
@@ -799,13 +947,49 @@ export default function ExamenesPage() {
             <p className="text-xs text-gray-400">
               Generado con IA · Revisa y ajusta las preguntas antes de usar
             </p>
-            <button
-              onClick={() => setExamenGenerado(null)}
-              className="text-sm text-gray-500 hover:text-gray-700 font-medium"
-            >
-              Cerrar resultado
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleGuardar}
+                disabled={guardando}
+                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                {guardando ? 'Guardando...' : examenGuardadoId ? 'Guardar nueva versión' : 'Guardar examen'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  console.info('[examenes] cerrar_resultado')
+                  setExamenGenerado(null)
+                }}
+                className="text-sm font-medium text-gray-500 hover:text-gray-700"
+              >
+                Cerrar resultado
+              </button>
+            </div>
           </div>
+          {(errorGuardado || examenGuardadoId !== null) && (
+            <div className="border-t border-gray-100 px-6 py-4">
+              {errorGuardado && (
+                <p role="alert" className="text-sm text-red-700">{errorGuardado}</p>
+              )}
+              {examenGuardadoId !== null && (
+                <p className="text-sm text-green-700">
+                  Examen guardado correctamente. Cada guardado crea un registro independiente.{' '}
+                  <Link
+                    href={`/examenes/guardados/${examenGuardadoId}`}
+                    className="font-semibold underline hover:text-green-900"
+                  >
+                    Ver examen
+                  </Link>
+                  {' · '}
+                  <Link href="/examenes/guardados" className="font-semibold underline hover:text-green-900">
+                    Ver todos los exámenes
+                  </Link>
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

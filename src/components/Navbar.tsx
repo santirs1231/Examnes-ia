@@ -10,6 +10,7 @@ const navItems = [
   { href: '/', label: 'Inicio' },
   { href: '/microcurriculos', label: 'Microcurrículos' },
   { href: '/examenes', label: 'Exámenes' },
+  { href: '/examenes/guardados', label: 'Exámenes guardados' },
 ]
 
 export default function Navbar() {
