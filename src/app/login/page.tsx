@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -86,9 +87,14 @@ export default function LoginPage() {
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 font-bold text-white">
-            IA
-          </div>
+          <Image
+            src="/logo/siad-saber-pro.png"
+            alt="SIAD-Saber Pro"
+            width={1536}
+            height={1024}
+            priority
+            className="mx-auto h-32 w-48 object-contain"
+          />
           <h1 className="mt-4 text-2xl font-bold text-gray-900">Iniciar sesión</h1>
           <p className="mt-2 text-sm text-gray-500">
             Accede con tu cuenta institucional para continuar.

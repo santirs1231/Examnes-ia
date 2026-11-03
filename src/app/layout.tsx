@@ -7,8 +7,19 @@ import AuthGuard from "@/components/AuthGuard";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Exámenes IA",
-  description: "Plataforma de generación de exámenes con IA basada en microcurrículos",
+  title: "SIAD-Saber Pro",
+  description: "Sistema de apoyo académico SIAD-Saber Pro para la creación y gestión de evaluaciones.",
+  icons: {
+    icon: "/logo/siad-saber-pro.png",
+    shortcut: "/logo/siad-saber-pro.png",
+    apple: "/logo/siad-saber-pro.png",
+  },
+  openGraph: {
+    title: "SIAD-Saber Pro",
+    description: "Sistema de apoyo académico para la creación y gestión de evaluaciones.",
+    locale: "es_CO",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

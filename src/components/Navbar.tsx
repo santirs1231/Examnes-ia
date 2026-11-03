@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
@@ -84,10 +85,15 @@ export default function Navbar() {
     <nav className="border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-            <span className="text-sm font-bold text-white">IA</span>
-          </div>
-          <span className="text-lg font-semibold text-gray-900">Exámenes IA</span>
+          <Image
+            src="/logo/siad-saber-pro.png"
+            alt="SIAD-Saber Pro"
+            width={1536}
+            height={1024}
+            priority
+            className="h-12 w-[72px] object-contain"
+          />
+          <span className="text-lg font-semibold text-gray-900">SIAD-Saber Pro</span>
         </Link>
 
         <div className="flex items-center gap-1">
