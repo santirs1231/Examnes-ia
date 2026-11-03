@@ -50,21 +50,21 @@ export default function ExportarExamen({ examen }: { examen: ExamenExportable })
         <button
           type="button"
           onClick={descargarMoodleXml}
-          className="rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-50"
+          className="rounded-lg border border-siad-violet-200 bg-white px-3 py-2 text-sm font-medium text-siad-violet-700 transition-colors hover:border-siad-violet-300 hover:bg-siad-violet-50"
         >
           Descargar Moodle XML
         </button>
         <button
           type="button"
           onClick={descargarAiken}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          className="rounded-lg border border-siad-navy-200 bg-white px-3 py-2 text-sm font-medium text-siad-navy-800 transition-colors hover:border-siad-navy-300 hover:bg-siad-navy-50"
         >
           Descargar AIKEN
         </button>
         <button
           type="button"
           onClick={guardarPdf}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          className="rounded-lg border border-siad-navy-200 bg-white px-3 py-2 text-sm font-medium text-siad-navy-800 transition-colors hover:border-siad-navy-300 hover:bg-siad-navy-50"
         >
           Imprimir / Guardar PDF
         </button>

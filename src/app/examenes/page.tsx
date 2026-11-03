@@ -60,8 +60,8 @@ function CheckChip({ label, checked, onChange }: { label: string; checked: boole
       onClick={onChange}
       className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
         checked
-          ? 'bg-purple-600 border-purple-600 text-white'
-          : 'bg-white border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-700'
+          ? 'bg-siad-violet-600 border-siad-violet-600 text-white'
+          : 'bg-white border-gray-200 text-gray-600 hover:border-siad-violet-300 hover:text-siad-violet-700'
       }`}
     >
       {label}
@@ -99,7 +99,7 @@ function Toggle({ checked, onChange, label, description }: {
       <button
         type="button"
         onClick={onChange}
-        className={`relative flex-shrink-0 w-10 h-5 rounded-full transition-colors ${checked ? 'bg-purple-600' : 'bg-gray-200'}`}
+        className={`relative flex-shrink-0 w-10 h-5 rounded-full transition-colors ${checked ? 'bg-siad-violet-600' : 'bg-gray-200'}`}
       >
         <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>
@@ -149,7 +149,7 @@ function TabGenerar({ form, setForm, materias, semanas, temasList }: {
         <select
           value={form.materia_id}
           onChange={(e) => setForm((f) => ({ ...f, materia_id: e.target.value, semanas: [], temas: [] }))}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-siad-violet-400 focus:border-transparent"
         >
           <option value="">Selecciona una materia...</option>
           {materias.map((m) => (
@@ -208,7 +208,7 @@ function TabGenerar({ form, setForm, materias, semanas, temasList }: {
               onClick={() => setForm((f) => ({ ...f, tipo: t.value }))}
               className={`flex flex-col items-center gap-1 py-3 rounded-xl border text-sm font-medium transition-all ${
                 form.tipo === t.value
-                  ? 'bg-purple-50 border-purple-400 text-purple-700'
+                  ? 'bg-siad-violet-50 border-siad-violet-400 text-siad-violet-700'
                   : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
               }`}
             >
@@ -246,7 +246,7 @@ function TabGenerar({ form, setForm, materias, semanas, temasList }: {
             max={100}
             value={form.cantidad_preguntas}
             onChange={(e) => setForm((f) => ({ ...f, cantidad_preguntas: parseInt(e.target.value) || 1 }))}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-siad-violet-400 focus:border-transparent"
           />
           <p className="mt-1 text-xs text-gray-400">Entre 1 y 100 preguntas</p>
         </div>
@@ -277,7 +277,7 @@ function TabAvanzado({ form, setForm }: {
           value={form.titulo}
           onChange={(e) => setForm((f) => ({ ...f, titulo: e.target.value }))}
           placeholder="Ej: Parcial 1 — Cálculo Diferencial"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-400 focus:border-transparent"
         />
         <p className="mt-1 text-xs text-gray-400">Si lo dejas vacío, la IA generará un título automáticamente.</p>
       </div>
@@ -291,15 +291,15 @@ function TabAvanzado({ form, setForm }: {
               type="button"
               onClick={() => setForm((prev) => ({ ...prev, formato: f.value }))}
               className={`flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
-                form.formato === f.value ? 'bg-purple-50 border-purple-400' : 'bg-white border-gray-200 hover:border-gray-300'
+                form.formato === f.value ? 'bg-siad-violet-50 border-siad-violet-400' : 'bg-white border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className={`w-3.5 h-3.5 mt-0.5 rounded-full border-2 flex-shrink-0 ${
-                form.formato === f.value ? 'border-purple-600 bg-purple-600' : 'border-gray-300 bg-white'
+                form.formato === f.value ? 'border-siad-violet-600 bg-siad-violet-600' : 'border-gray-300 bg-white'
               }`} />
               <div>
-                <p className={`text-sm font-medium ${form.formato === f.value ? 'text-purple-800' : 'text-gray-700'}`}>{f.label}</p>
-                <p className={`text-xs mt-0.5 ${form.formato === f.value ? 'text-purple-600' : 'text-gray-500'}`}>{f.desc}</p>
+                <p className={`text-sm font-medium ${form.formato === f.value ? 'text-siad-violet-800' : 'text-gray-700'}`}>{f.label}</p>
+                <p className={`text-xs mt-0.5 ${form.formato === f.value ? 'text-siad-violet-600' : 'text-gray-500'}`}>{f.desc}</p>
               </div>
             </button>
           ))}
@@ -318,7 +318,7 @@ function TabAvanzado({ form, setForm }: {
             value={form.porcentaje_nota}
             onChange={(e) => setForm((f) => ({ ...f, porcentaje_nota: e.target.value }))}
             placeholder="Ej: 30"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-400 focus:border-transparent"
           />
         </div>
         <div>
@@ -326,7 +326,7 @@ function TabAvanzado({ form, setForm }: {
           <select
             value={form.idioma}
             onChange={(e) => setForm((f) => ({ ...f, idioma: e.target.value }))}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-siad-violet-400 focus:border-transparent"
           >
             <option value="es">Español</option>
             <option value="en">Inglés</option>
@@ -342,7 +342,7 @@ function TabAvanzado({ form, setForm }: {
           onChange={(e) => setForm((f) => ({ ...f, instrucciones_adicionales: e.target.value }))}
           placeholder="Ej: Incluye preguntas de análisis de caso, evita preguntas memorísticas, enfócate en aplicaciones prácticas..."
           rows={3}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-siad-violet-400 focus:border-transparent"
         />
       </div>
 
@@ -605,8 +605,8 @@ export default function ExamenesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-          <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-12 h-12 bg-siad-navy-50 rounded-xl flex items-center justify-center flex-shrink-0">
+          <svg className="w-6 h-6 text-siad-navy-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
@@ -614,7 +614,7 @@ export default function ExamenesPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">Generador de Exámenes</h1>
-            <span className="px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
+            <span className="px-2.5 py-1 text-xs font-semibold bg-siad-gold-100 text-siad-navy-900 rounded-full">
               Beta
             </span>
           </div>
@@ -637,7 +637,7 @@ export default function ExamenesPage() {
               onClick={() => setTab(t.key)}
               className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-all ${
                 tab === t.key
-                  ? 'border-purple-600 text-purple-700 bg-purple-50'
+                  ? 'border-siad-violet-600 text-siad-violet-700 bg-siad-violet-50'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -683,7 +683,7 @@ export default function ExamenesPage() {
             disabled={!canGenerate || loading}
             className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-lg transition-all ${
               canGenerate && !loading
-                ? 'bg-purple-600 text-white hover:bg-purple-700'
+                ? 'bg-siad-navy-800 text-white hover:bg-siad-navy-900'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
@@ -736,11 +736,11 @@ export default function ExamenesPage() {
       {examenGenerado && (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           {/* Encabezado del examen */}
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-5 text-white">
+          <div className="bg-gradient-to-r from-siad-navy-900 via-siad-navy-800 to-siad-violet-700 px-6 py-5 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold">{examenGenerado.titulo || 'Examen Generado'}</h2>
-                <p className="text-purple-200 text-sm mt-1">
+                <p className="text-siad-violet-100 text-sm mt-1">
                   {examenGenerado.materia} · {examenGenerado.tipo?.toUpperCase()} · Nivel {examenGenerado.nivel}
                 </p>
               </div>
@@ -776,7 +776,7 @@ export default function ExamenesPage() {
             {examenGenerado.preguntas?.map((pregunta: PreguntaGenerada, idx: number) => (
               <div key={idx} className="px-6 py-5">
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-8 h-8 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center text-sm font-bold">
+                  <span className="flex-shrink-0 w-8 h-8 bg-siad-violet-100 text-siad-violet-800 rounded-lg flex items-center justify-center text-sm font-bold">
                     {pregunta.numero || idx + 1}
                   </span>
                   <div className="flex-1 space-y-3 print:hidden">
@@ -793,7 +793,7 @@ export default function ExamenesPage() {
                                 : { texto_con_espacio: e.target.value }
                             )}
                             rows={3}
-                            className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                            className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-siad-violet-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-100"
                           />
                         </label>
                         {pregunta.opciones?.map((opcion, oidx) => (
@@ -807,7 +807,7 @@ export default function ExamenesPage() {
                                 ),
                               })}
                               rows={2}
-                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-siad-violet-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-100"
                             />
                           </label>
                         ))}
@@ -817,7 +817,7 @@ export default function ExamenesPage() {
                             <input
                               value={pregunta.respuesta_correcta}
                               onChange={(e) => actualizarPregunta(idx, { respuesta_correcta: e.target.value })}
-                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-siad-violet-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-100"
                             />
                           </label>
                         )}
@@ -827,7 +827,7 @@ export default function ExamenesPage() {
                             <input
                               value={pregunta.palabra_correcta}
                               onChange={(e) => actualizarPregunta(idx, { palabra_correcta: e.target.value })}
-                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-siad-violet-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-100"
                             />
                           </label>
                         )}
@@ -838,7 +838,7 @@ export default function ExamenesPage() {
                               value={pregunta.rubrica}
                               onChange={(e) => actualizarPregunta(idx, { rubrica: e.target.value })}
                               rows={3}
-                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-siad-violet-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-100"
                             />
                           </label>
                         )}
@@ -849,7 +849,7 @@ export default function ExamenesPage() {
                               value={pregunta.justificacion}
                               onChange={(e) => actualizarPregunta(idx, { justificacion: e.target.value })}
                               rows={2}
-                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-siad-violet-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-100"
                             />
                           </label>
                         )}
@@ -860,7 +860,7 @@ export default function ExamenesPage() {
                               value={pregunta.gift_text}
                               onChange={(e) => actualizarPregunta(idx, { gift_text: e.target.value })}
                               rows={4}
-                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                              className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:border-siad-violet-400 focus:outline-none focus:ring-2 focus:ring-siad-violet-100"
                             />
                           </label>
                         )}
@@ -954,7 +954,7 @@ export default function ExamenesPage() {
                         return siguientes
                       })
                     }}
-                    className="flex-shrink-0 rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:border-purple-300 hover:bg-purple-50"
+                    className="flex-shrink-0 rounded-lg border border-siad-violet-200 px-3 py-1.5 text-xs font-medium text-siad-violet-700 transition-colors hover:border-siad-violet-300 hover:bg-siad-violet-50"
                   >
                     {preguntasEditando.has(idx) ? 'Terminar edición' : 'Editar'}
                   </button>
@@ -973,7 +973,7 @@ export default function ExamenesPage() {
                 type="button"
                 onClick={handleGuardar}
                 disabled={guardando}
-                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                className="rounded-lg bg-siad-navy-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-siad-navy-900 disabled:cursor-not-allowed disabled:bg-gray-300"
               >
                 {guardando ? 'Guardando...' : examenGuardadoId ? 'Guardar nueva versión' : 'Guardar examen'}
               </button>
@@ -983,7 +983,7 @@ export default function ExamenesPage() {
                   console.info('[examenes] cerrar_resultado')
                   setExamenGenerado(null)
                 }}
-                className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                className="text-sm font-medium text-siad-violet-700 hover:text-siad-violet-900"
               >
                 Cerrar resultado
               </button>
