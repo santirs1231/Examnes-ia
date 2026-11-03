@@ -139,6 +139,7 @@ export function generarAiken(examen: ExamenExportable): string {
     return [
       enunciado,
       ...opciones.map((opcion) => `${opcion.letra}. ${opcion.texto}`),
+      `ANSWER: ${correcta}`,
     ].join('\n')
   }).join('\n\n') + '\n'
 }

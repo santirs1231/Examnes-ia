@@ -165,7 +165,7 @@ export default function ExamenGuardadoDetallePage() {
                   {pregunta.opciones.map((opcion, opcionIndice) => (
                     <li
                       key={opcionIndice}
-                      className={`rounded-lg px-3 py-2 text-sm ${
+                      className={`print-answer-option rounded-lg px-3 py-2 text-sm ${
                         pregunta.respuesta_correcta === opcion.charAt(0)
                           ? 'border border-green-200 bg-green-50 text-green-800'
                           : 'bg-gray-50 text-gray-700'
@@ -177,22 +177,22 @@ export default function ExamenGuardadoDetallePage() {
                 </ul>
               )}
               {pregunta.palabra_correcta && (
-                <p className="text-sm text-green-800">
+                <p className="print:hidden text-sm text-green-800">
                   <span className="font-semibold">Respuesta:</span> {pregunta.palabra_correcta}
                 </p>
               )}
               {pregunta.rubrica && (
-                <p className="whitespace-pre-wrap rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                <p className="print:hidden whitespace-pre-wrap rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800">
                   <span className="font-semibold">Rúbrica:</span> {pregunta.rubrica}
                 </p>
               )}
               {pregunta.justificacion && (
-                <p className="whitespace-pre-wrap text-sm italic text-gray-500">
+                <p className="print:hidden whitespace-pre-wrap text-sm italic text-gray-500">
                   {pregunta.justificacion}
                 </p>
               )}
               {pregunta.gift_text && (
-                <pre className="overflow-x-auto rounded-lg bg-gray-900 px-4 py-3 text-xs text-green-400">
+                <pre className="print:hidden overflow-x-auto rounded-lg bg-gray-900 px-4 py-3 text-xs text-green-400">
                   {pregunta.gift_text}
                 </pre>
               )}
