@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { normalizeUserRole } from '@/lib/role-types'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -26,7 +27,7 @@ export default function LoginPage() {
 
     supabase.auth.getSession().then(({ data }) => {
       if (isMounted && data.session) {
-        router.replace('/microcurriculos')
+        router.replace('/')
       }
     })
 
@@ -60,20 +61,18 @@ export default function LoginPage() {
         throw new Error('No se pudo iniciar sesión.')
       }
 
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('perfiles_usuario')
         .select('rol')
         .eq('id', data.user.id)
         .maybeSingle()
+      if (perfilError) throw perfilError
 
-      const role = (perfil?.rol as string | undefined)?.toLowerCase() || 'docente'
-
-      if (role === 'admin') {
-        router.push('/microcurriculos')
-        return
+      if (!normalizeUserRole(perfil?.rol)) {
+        throw new Error('Tu cuenta no tiene un rol válido asignado. Contacta al administrador.')
       }
 
-      router.push('/microcurriculos')
+      router.push('/')
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'No se pudo iniciar sesión con las credenciales actuales.'

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
-import { supabase } from '@/lib/supabase'
+import { normalizeUserRole } from '@/lib/role-types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,23 +47,25 @@ interface ApiErrorLike {
   message?: string
 }
 
-async function obtenerContextoMateria(body: GenerarExamenBody) {
+async function obtenerContextoMateria(body: GenerarExamenBody, database: SupabaseClient) {
   // Obtener nombre de la materia
-  const { data: materia } = await supabase
+  const { data: materia, error: materiaError } = await database
     .from('materias')
     .select('nombre, codigo, descripcion')
     .eq('id', Number(body.materia_id))
     .single()
+  if (materiaError) throw materiaError
 
   // Obtener semanas seleccionadas con sus temas
-  const { data: semanas } = (await supabase
+  const { data: semanas, error: semanasError } = (await database
     .from('semanas')
     .select(`
       id, numero_semana, objetivo_semanal,
       temas ( id, titulo, descripcion )
     `)
     .in('id', body.semanas)
-    .order('numero_semana')) as { data: SemanaRow[] | null }
+    .order('numero_semana')) as { data: SemanaRow[] | null; error: { message: string } | null }
+  if (semanasError) throw semanasError
 
   // Si el usuario seleccionó temas específicos, filtrarlos
   let temasTexto = ''
@@ -187,6 +190,38 @@ Para formato "GIFT", incluye un campo "gift_text" con la pregunta en sintaxis GI
 
 export async function POST(request: NextRequest) {
   try {
+    const authorization = request.headers.get('authorization')
+    const accessToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1]
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Debes iniciar sesión para generar preguntas.' }, { status: 401 })
+    }
+
+    const authClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+        global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      }
+    )
+    const { data: userData, error: userError } = await authClient.auth.getUser(accessToken)
+    if (userError || !userData.user) {
+      return NextResponse.json({ error: 'La sesión no es válida. Inicia sesión de nuevo.' }, { status: 401 })
+    }
+
+    const { data: profile, error: profileError } = await authClient
+      .from('perfiles_usuario')
+      .select('rol')
+      .eq('id', userData.user.id)
+      .maybeSingle()
+    if (profileError) {
+      console.error('Error al validar rol para generación:', profileError.message)
+      return NextResponse.json({ error: 'No se pudo validar tu rol.' }, { status: 500 })
+    }
+    if (normalizeUserRole(profile?.rol) !== 'docente') {
+      return NextResponse.json({ error: 'Solo los docentes pueden crear preguntas.' }, { status: 403 })
+    }
+
     // Validar que existe la API key
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
@@ -206,7 +241,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener contexto de la materia desde Supabase
-    const contexto = await obtenerContextoMateria(body)
+    const contexto = await obtenerContextoMateria(body, authClient)
 
     // Construir el prompt
     const prompt = construirPrompt(body, contexto)

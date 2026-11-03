@@ -459,9 +459,16 @@ export default function ExamenesPage() {
     setPreguntasEditando(new Set())
 
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) throw sessionError
+      if (!sessionData.session) throw new Error('Debes iniciar sesión para generar preguntas.')
+
       const res = await fetch('/api/generar-examen', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
         body: JSON.stringify(form),
       })
 

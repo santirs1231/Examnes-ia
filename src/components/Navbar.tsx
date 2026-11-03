@@ -5,63 +5,80 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { getUserRole } from '@/lib/roles'
+import { formatUserRole, type UserRole } from '@/lib/role-types'
 
-const navItems = [
+const teacherNavItems = [
   { href: '/', label: 'Inicio' },
   { href: '/microcurriculos', label: 'Microcurrículos' },
   { href: '/examenes', label: 'Exámenes' },
   { href: '/examenes/guardados', label: 'Exámenes guardados' },
 ]
 
+const adminNavItems = [
+  { href: '/', label: 'Dashboard' },
+  { href: '/microcurriculos', label: 'Microcurrículos' },
+  { href: '/admin/usuarios', label: 'Usuarios y roles' },
+]
+
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const [session, setSession] = useState<Session | null>(null)
-  const [role, setRole] = useState<string>('')
+  const [role, setRole] = useState<UserRole | null>(null)
 
   useEffect(() => {
-    const syncSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      setSession(data.session)
+    let active = true
+    const syncRole = async (currentSession: Session | null) => {
+      setSession(currentSession)
+      if (!currentSession) {
+        setRole(null)
+        return
+      }
 
-      if (data.session?.user) {
-        const { data: perfil } = await supabase
-          .from('perfiles_usuario')
-          .select('rol')
-          .eq('id', data.session.user.id)
-          .maybeSingle()
-
-        setRole((perfil?.rol as string) || 'docente')
-      } else {
-        setRole('')
+      try {
+        const currentRole = await getUserRole(currentSession.user.id)
+        if (active) setRole(currentRole)
+      } catch (error) {
+        console.error('[navbar] role_lookup:error', error)
+        if (active) setRole(null)
       }
     }
 
-    syncSession()
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-      setSession(nextSession)
-
-      if (nextSession?.user) {
-        const { data: perfil } = await supabase
-          .from('perfiles_usuario')
-          .select('rol')
-          .eq('id', nextSession.user.id)
-          .maybeSingle()
-
-        setRole((perfil?.rol as string) || 'docente')
-      } else {
-        setRole('')
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.error('[navbar] session_lookup:error', error)
+        return
       }
+      return syncRole(data.session)
+    }).catch((error: unknown) => {
+      console.error('[navbar] session_lookup:error', error)
     })
 
-    return () => authListener.subscription.unsubscribe()
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+      await syncRole(nextSession)
+    })
+
+    return () => {
+      active = false
+      authListener.subscription.unsubscribe()
+    }
   }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('[navbar] sign_out:error', error)
+      return
+    }
     router.push('/login')
   }
+
+  const navItems = role === 'admin'
+    ? adminNavItems
+    : role === 'docente'
+      ? teacherNavItems
+      : []
 
   return (
     <nav className="border-b border-gray-200 bg-white shadow-sm">
@@ -95,7 +112,7 @@ export default function Navbar() {
             <div className="ml-2 flex items-center gap-3">
               {role && (
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 uppercase">
-                  {role}
+                  {formatUserRole(role)}
                 </span>
               )}
               <button
